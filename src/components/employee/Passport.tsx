@@ -1,21 +1,14 @@
 import { WalletConnect } from './WalletConnect';
 import { AttestationCard } from './AttestationCard';
 import { useWallet } from '../../hooks/useWallet';
-import { supabase } from '../../services/supabase';
 import type { PassportProps } from '../../props/Passport.props';
 
-export function Passport({ employee, attestations, loading }: PassportProps) {
+export function Passport({ employee, attestations, loading, onWalletLinked }: PassportProps) {
   const { connected, address } = useWallet();
   const isOwner = connected && address === employee.wallet_address;
   const needsWallet = !employee.wallet_address;
 
-  async function handleWalletConnect() {
-    if (!address || employee.wallet_address) return;
-    await supabase.from('employees').update({ wallet_address: address }).eq('id', employee.id);
-    window.location.href = `/passport/${address}`;
-  }
-
-  const levelOrder = { 'Expert': 0, 'Certifié': 1, 'En formation': 2 };
+  const levelOrder = { 'Expert': 0, 'Certifié': 1, 'En formation': 2 } as const;
   const sorted = [...attestations].sort((a, b) => levelOrder[a.level] - levelOrder[b.level]);
 
   return (
@@ -47,7 +40,7 @@ export function Passport({ employee, attestations, loading }: PassportProps) {
               </div>
               {connected && address && needsWallet && (
                 <button
-                  onClick={handleWalletConnect}
+                  onClick={() => onWalletLinked(address)}
                   className="w-full py-2 bg-amber-500 text-white text-sm font-semibold rounded-lg hover:bg-amber-600 transition-colors"
                 >
                   Associer ce wallet à mon profil
@@ -58,7 +51,7 @@ export function Passport({ employee, attestations, loading }: PassportProps) {
 
           {isOwner && (
             <p className="text-xs text-gray-400">
-              Partage cette page à tes futurs employeurs :{' '}
+              Partage cette page :{' '}
               <span className="font-mono">/passport/{employee.wallet_address}</span>
             </p>
           )}

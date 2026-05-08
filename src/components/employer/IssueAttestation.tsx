@@ -1,28 +1,25 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '../../services/supabase';
+import { useState } from 'react';
 import { sha256 } from '../../services/hash';
 import { useSolana } from '../../hooks/useSolana';
+import { useAttestations, useEmployees } from '../../hooks/useAttestations';
 import { ATTESTATION_TYPE, ATTESTATION_VERSION, SKILL_PRESETS } from '../../config/constants';
 import { SolanaStatus } from '../shared/SolanaStatus';
 import type { IssueAttestationProps } from '../../props/IssueAttestation.props';
 import type { AttestationLevel } from '../../types/attestation';
-import type { Employee } from '../../types/employee';
 
 const LEVELS: AttestationLevel[] = ['En formation', 'Certifié', 'Expert'];
 
 export function IssueAttestation({ employerId, restaurantName, onSuccess }: IssueAttestationProps) {
-  const [employees, setEmployees] = useState<Employee[]>([]);
+  const { employees } = useEmployees();
+  const { createAttestation } = useAttestations({ employerId });
+  const { sendMemo, sending, error: solanaError } = useSolana();
+
   const [selectedEmployee, setSelectedEmployee] = useState('');
   const [skill, setSkill] = useState('');
   const [level, setLevel] = useState<AttestationLevel>('Certifié');
   const [submitting, setSubmitting] = useState(false);
   const [txSig, setTxSig] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
-  const { sendMemo, sending, error: solanaError } = useSolana();
-
-  useEffect(() => {
-    supabase.from('employees').select('*').order('name').then(({ data }) => setEmployees(data ?? []));
-  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -49,7 +46,7 @@ export function IssueAttestation({ employerId, restaurantName, onSuccess }: Issu
       const hash = await sha256(basePayload);
       const txSignature = await sendMemo({ ...basePayload, hash });
 
-      const { error } = await supabase.from('attestations').insert({
+      const { error } = await createAttestation({
         employee_id: selectedEmployee,
         employer_id: employerId,
         skill,
@@ -58,10 +55,7 @@ export function IssueAttestation({ employerId, restaurantName, onSuccess }: Issu
         payload_hash: hash,
       });
 
-      if (error) {
-        setFormError(error.message);
-        return;
-      }
+      if (error) { setFormError(error); return; }
 
       setTxSig(txSignature);
       setTimeout(() => {

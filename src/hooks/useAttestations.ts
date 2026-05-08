@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../services/supabase';
 import type { Attestation, AttestationWithEmployer } from '../types/attestation';
+import type { Employee } from '../types/employee';
 
 export function useAttestations(params: { employeeId?: string; employerId?: string }) {
   const [attestations, setAttestations] = useState<Attestation[]>([]);
@@ -71,7 +72,7 @@ export function usePassportAttestations(employeeId: string | null) {
 }
 
 export function useEmployees() {
-  const [employees, setEmployees] = useState<{ id: string; name: string; email: string; wallet_address: string | null }[]>([]);
+  const [employees, setEmployees] = useState<Pick<Employee, 'id' | 'name' | 'email' | 'wallet_address'>[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { fetchEmployees(); }, []);
@@ -89,4 +90,48 @@ export function useEmployees() {
   }
 
   return { employees, loading, addEmployee, refetch: fetchEmployees };
+}
+
+export function useEmployee(id: string | null) {
+  const [employee, setEmployee] = useState<Employee | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+
+  useEffect(() => {
+    if (!id) { setLoading(false); return; }
+    supabase.from('employees').select('*').eq('id', id).single().then(({ data }) => {
+      if (!data) setNotFound(true);
+      else setEmployee(data);
+      setLoading(false);
+    });
+  }, [id]);
+
+  async function updateWalletAddress(walletAddress: string): Promise<string | null> {
+    if (!employee) return 'Employé non chargé';
+    const { error } = await supabase
+      .from('employees')
+      .update({ wallet_address: walletAddress })
+      .eq('id', employee.id);
+    if (!error) setEmployee(prev => prev ? { ...prev, wallet_address: walletAddress } : prev);
+    return error?.message ?? null;
+  }
+
+  return { employee, loading, notFound, updateWalletAddress };
+}
+
+export function useEmployeeByWallet(walletAddress: string | undefined) {
+  const [employee, setEmployee] = useState<Employee | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+
+  useEffect(() => {
+    if (!walletAddress) { setLoading(false); return; }
+    supabase.from('employees').select('*').eq('wallet_address', walletAddress).single().then(({ data }) => {
+      if (!data) setNotFound(true);
+      else setEmployee(data);
+      setLoading(false);
+    });
+  }, [walletAddress]);
+
+  return { employee, loading, notFound };
 }
