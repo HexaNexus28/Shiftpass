@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0f0a1e"/>
+      <stop offset="50%" stop-color="#1e0a3c"/>
+      <stop offset="100%" stop-color="#0f0a1e"/>
+    </linearGradient>
+    <linearGradient id="purpleGrad" x1="0" y1="0" x2="300" y2="300" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#4f46e5"/>
+    </linearGradient>
+    <linearGradient id="textGrad" x1="0" y1="0" x2="600" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#e9d5ff"/>
+      <stop offset="100%" stop-color="#c4b5fd"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGrad)"/>
+
+  <!-- Grid lines (blockchain aesthetic) -->
+  <g opacity="0.06" stroke="#7c3aed" stroke-width="1">
+    <line x1="0" y1="105" x2="1200" y2="105"/>
+    <line x1="0" y1="210" x2="1200" y2="210"/>
+    <line x1="0" y1="315" x2="1200" y2="315"/>
+    <line x1="0" y1="420" x2="1200" y2="420"/>
+    <line x1="0" y1="525" x2="1200" y2="525"/>
+    <line x1="150" y1="0" x2="150" y2="630"/>
+    <line x1="300" y1="0" x2="300" y2="630"/>
+    <line x1="450" y1="0" x2="450" y2="630"/>
+    <line x1="600" y1="0" x2="600" y2="630"/>
+    <line x1="750" y1="0" x2="750" y2="630"/>
+    <line x1="900" y1="0" x2="900" y2="630"/>
+    <line x1="1050" y1="0" x2="1050" y2="630"/>
+  </g>
+
+  <!-- Glow orbs -->
+  <circle cx="200" cy="315" r="220" fill="#7c3aed" opacity="0.08"/>
+  <circle cx="950" cy="200" r="180" fill="#4f46e5" opacity="0.08"/>
+  <circle cx="1050" cy="500" r="120" fill="#7c3aed" opacity="0.06"/>
+
+  <!-- Logo shield (left side) -->
+  <g transform="translate(120, 165)">
+    <path d="M120 0 L240 48 L240 156 C240 228 180 276 120 288 C60 276 0 228 0 156 L0 48 Z" fill="url(#purpleGrad)" opacity="0.9"/>
+    <!-- Chain links in logo -->
+    <rect x="82" y="56" width="56" height="36" rx="18" fill="none" stroke="#c4b5fd" stroke-width="8"/>
+    <rect x="44" y="108" width="56" height="36" rx="18" fill="none" stroke="#c4b5fd" stroke-width="8"/>
+    <rect x="120" y="108" width="56" height="36" rx="18" fill="none" stroke="#c4b5fd" stroke-width="8"/>
+    <rect x="82" y="160" width="56" height="36" rx="18" fill="none" stroke="#c4b5fd" stroke-width="8"/>
+    <line x1="110" y1="92" x2="72" y2="108" stroke="#c4b5fd" stroke-width="7" opacity="0.7"/>
+    <line x1="130" y1="92" x2="168" y2="108" stroke="#c4b5fd" stroke-width="7" opacity="0.7"/>
+    <line x1="72" y1="144" x2="110" y2="160" stroke="#c4b5fd" stroke-width="7" opacity="0.7"/>
+    <line x1="168" y1="144" x2="130" y2="160" stroke="#c4b5fd" stroke-width="7" opacity="0.7"/>
+    <path d="M100 178 L112 191 L142 165" stroke="#4ade80" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Main title -->
+  <text x="420" y="240" font-family="system-ui, -apple-system, sans-serif" font-size="96" font-weight="800" fill="url(#textGrad)" letter-spacing="-3">ShiftPass</text>
+
+  <!-- Tagline -->
+  <text x="420" y="310" font-family="system-ui, -apple-system, sans-serif" font-size="32" font-weight="400" fill="#9ca3af">Ton historique pro t'appartient.</text>
+
+  <!-- Sub-tagline -->
+  <text x="420" y="365" font-family="system-ui, -apple-system, sans-serif" font-size="24" fill="#6b7280">Attestations de compétences vérifiables on-chain · Solana</text>
+
+  <!-- Stats row -->
+  <g transform="translate(420, 430)">
+    <!-- Stat 1 -->
+    <rect width="180" height="72" rx="12" fill="#ffffff" fill-opacity="0.05" stroke="#7c3aed" stroke-opacity="0.3" stroke-width="1"/>
+    <text x="90" y="32" text-anchor="middle" font-family="system-ui" font-size="28" font-weight="700" fill="#a78bfa">$0.00025</text>
+    <text x="90" y="54" text-anchor="middle" font-family="system-ui" font-size="13" fill="#6b7280">/transaction</text>
+
+    <!-- Stat 2 -->
+    <rect x="196" width="180" height="72" rx="12" fill="#ffffff" fill-opacity="0.05" stroke="#7c3aed" stroke-opacity="0.3" stroke-width="1"/>
+    <text x="286" y="32" text-anchor="middle" font-family="system-ui" font-size="28" font-weight="700" fill="#a78bfa">400ms</text>
+    <text x="286" y="54" text-anchor="middle" font-family="system-ui" font-size="13" fill="#6b7280">confirmation</text>
+
+    <!-- Stat 3 -->
+    <rect x="392" width="180" height="72" rx="12" fill="#ffffff" fill-opacity="0.05" stroke="#7c3aed" stroke-opacity="0.3" stroke-width="1"/>
+    <text x="482" y="32" text-anchor="middle" font-family="system-ui" font-size="28" font-weight="700" fill="#a78bfa">∞</text>
+    <text x="482" y="54" text-anchor="middle" font-family="system-ui" font-size="13" fill="#6b7280">durée de vie</text>
+  </g>
+
+  <!-- Hackathon badge -->
+  <rect x="420" y="540" width="340" height="44" rx="22" fill="#7c3aed" fill-opacity="0.15" stroke="#7c3aed" stroke-opacity="0.4" stroke-width="1"/>
+  <circle cx="450" cy="562" r="6" fill="#4ade80"/>
+  <text x="466" y="567" font-family="system-ui" font-size="18" fill="#a78bfa">Dev3Pack Global Hackathon · Mai 2026</text>
+
+  <!-- Solana logo reference (abstract) -->
+  <g transform="translate(1020, 400)" opacity="0.15">
+    <ellipse cx="60" cy="20" rx="60" ry="12" fill="#9945ff" transform="rotate(-20, 60, 20)"/>
+    <ellipse cx="60" cy="50" rx="60" ry="12" fill="#19fb9b" transform="rotate(-20, 60, 50)"/>
+    <ellipse cx="60" cy="80" rx="60" ry="12" fill="#9945ff" transform="rotate(-20, 60, 80)"/>
+  </g>
+</svg>
