@@ -7,9 +7,8 @@ import dotenv from 'dotenv';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// Load .env.dev first, fallback to .env.local
-const envFile = process.env.NODE_ENV === 'dev'
-  ? resolve(__dirname, '../.env.dev')
+const envFile = process.env.NODE_ENV === 'local'
+  ? resolve(__dirname, '../.env.local')
   : resolve(__dirname, '../.env.local');
 
 dotenv.config({ path: envFile });
@@ -22,23 +21,41 @@ if (!SUPABASE_DB_URL) {
   process.exit(1);
 }
 
-const connectionString = SUPABASE_DB_PASSWORD
-  ? SUPABASE_DB_URL.replace('[YOUR-PASSWORD]', SUPABASE_DB_PASSWORD)
-  : SUPABASE_DB_URL;
+// Parse the DB URL to extract connection params — avoids @ in password breaking URL parsing
+function buildPgConfig(rawUrl, password) {
+  // Strip the password from the URL to get a clean parseable URL
+  // Format: postgresql://user:pass@host:port/db  OR  postgresql://user@host:port/db
+  const withoutScheme = rawUrl.replace(/^postgresql:\/\//, '');
+  const atLastIndex = withoutScheme.lastIndexOf('@');
+  const userInfo = withoutScheme.slice(0, atLastIndex);
+  const hostInfo = withoutScheme.slice(atLastIndex + 1);
 
-const client = new pg.Client({ connectionString, ssl: { rejectUnauthorized: false } });
+  const user = userInfo.includes(':') ? userInfo.split(':')[0] : userInfo;
+  const [hostPort, database] = hostInfo.split('/');
+  const [host, port] = hostPort.includes(':') ? hostPort.split(':') : [hostPort, '5432'];
 
+  return {
+    host,
+    port: parseInt(port ?? '5432', 10),
+    database: database ?? 'postgres',
+    user,
+    password: password ?? (userInfo.includes(':') ? userInfo.slice(user.length + 1) : ''),
+    ssl: { rejectUnauthorized: false },
+  };
+}
+
+const pgConfig = buildPgConfig(SUPABASE_DB_URL, SUPABASE_DB_PASSWORD);
+const client = new pg.Client(pgConfig);
 const migrationsDir = resolve(__dirname, '../supabase/migrations');
 
 async function run() {
   await client.connect();
-  console.log('✅ Connected to Supabase');
+  console.log(`✅ Connected to ${pgConfig.host}`);
 
-  // Track applied migrations
   await client.query(`
     CREATE TABLE IF NOT EXISTS _migrations (
-      id        serial PRIMARY KEY,
-      filename  text UNIQUE NOT NULL,
+      id         serial PRIMARY KEY,
+      filename   text UNIQUE NOT NULL,
       applied_at timestamptz DEFAULT now()
     )
   `);

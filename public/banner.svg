@@ -70,19 +70,14 @@
   <!-- Stats row -->
   <g transform="translate(420, 430)">
     <!-- Stat 1 -->
-    <rect width="180" height="72" rx="12" fill="#ffffff" fill-opacity="0.05" stroke="#7c3aed" stroke-opacity="0.3" stroke-width="1"/>
-    <text x="90" y="32" text-anchor="middle" font-family="system-ui" font-size="28" font-weight="700" fill="#a78bfa">$0.00025</text>
-    <text x="90" y="54" text-anchor="middle" font-family="system-ui" font-size="13" fill="#6b7280">/transaction</text>
+    <rect x="98" width="180" height="72" rx="12" fill="#ffffff" fill-opacity="0.05" stroke="#7c3aed" stroke-opacity="0.3" stroke-width="1"/>
+    <text x="188" y="32" text-anchor="middle" font-family="system-ui" font-size="28" font-weight="700" fill="#a78bfa">400ms</text>
+    <text x="188" y="54" text-anchor="middle" font-family="system-ui" font-size="13" fill="#6b7280">confirmation</text>
 
     <!-- Stat 2 -->
-    <rect x="196" width="180" height="72" rx="12" fill="#ffffff" fill-opacity="0.05" stroke="#7c3aed" stroke-opacity="0.3" stroke-width="1"/>
-    <text x="286" y="32" text-anchor="middle" font-family="system-ui" font-size="28" font-weight="700" fill="#a78bfa">400ms</text>
-    <text x="286" y="54" text-anchor="middle" font-family="system-ui" font-size="13" fill="#6b7280">confirmation</text>
-
-    <!-- Stat 3 -->
-    <rect x="392" width="180" height="72" rx="12" fill="#ffffff" fill-opacity="0.05" stroke="#7c3aed" stroke-opacity="0.3" stroke-width="1"/>
-    <text x="482" y="32" text-anchor="middle" font-family="system-ui" font-size="28" font-weight="700" fill="#a78bfa">∞</text>
-    <text x="482" y="54" text-anchor="middle" font-family="system-ui" font-size="13" fill="#6b7280">durée de vie</text>
+    <rect x="294" width="180" height="72" rx="12" fill="#ffffff" fill-opacity="0.05" stroke="#7c3aed" stroke-opacity="0.3" stroke-width="1"/>
+    <text x="384" y="32" text-anchor="middle" font-family="system-ui" font-size="28" font-weight="700" fill="#a78bfa">∞</text>
+    <text x="384" y="54" text-anchor="middle" font-family="system-ui" font-size="13" fill="#6b7280">durée de vie</text>
   </g>
 
   <!-- Hackathon badge -->
