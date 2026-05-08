@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '../services/supabase';
+import { getEmployerById, createEmployer } from '../services/employers';
 import type { Employer } from '../types/employer';
 
 export function useAuth() {
@@ -12,7 +13,7 @@ export function useAuth() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchEmployer(session.user.id);
+        loadEmployer(session.user.id);
       } else {
         setLoading(false);
       }
@@ -21,7 +22,7 @@ export function useAuth() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchEmployer(session.user.id);
+        loadEmployer(session.user.id);
       } else {
         setEmployer(null);
         setLoading(false);
@@ -31,13 +32,8 @@ export function useAuth() {
     return () => subscription.unsubscribe();
   }, []);
 
-  async function fetchEmployer(userId: string) {
-    const { data } = await supabase
-      .from('employers')
-      .select('*')
-      .eq('id', userId)
-      .single();
-    setEmployer(data);
+  async function loadEmployer(userId: string) {
+    setEmployer(await getEmployerById(userId));
     setLoading(false);
   }
 
@@ -55,14 +51,7 @@ export function useAuth() {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) return error.message;
     if (!data.user) return 'Erreur lors de la création du compte';
-
-    const { error: insertError } = await supabase.from('employers').insert({
-      id: data.user.id,
-      name,
-      restaurant,
-      email,
-    });
-    return insertError?.message ?? null;
+    return createEmployer(data.user.id, name, restaurant, email);
   }
 
   async function signOut(): Promise<void> {
