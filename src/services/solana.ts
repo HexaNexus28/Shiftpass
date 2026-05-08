@@ -1,3 +1,4 @@
+import { Buffer } from 'buffer';
 import {
   Connection, PublicKey, Transaction, TransactionInstruction,
 } from '@solana/web3.js';

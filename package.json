@@ -12,7 +12,9 @@
     "migrate:local": "NODE_ENV=local node scripts/migrate.js"
   },
   "dependencies": {
+    "@solana/web3.js": "^1.98.4",
     "@supabase/supabase-js": "^2.105.4",
+    "buffer": "^6.0.3",
     "dotenv": "^17.4.2",
     "pg": "^8.20.0",
     "react": "^19.2.5",
