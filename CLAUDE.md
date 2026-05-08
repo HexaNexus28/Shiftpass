@@ -199,13 +199,13 @@ VITE_SUPABASE_ANON_KEY=eyJ...
 
 VITE_SOLANA_RPC=https://api.devnet.solana.com
 
-# Connexion directe DB — Supabase > Settings > Database > Connection string
-SUPABASE_DB_URL=postgresql://postgres.[ref]:[password]@aws-0-eu-west-3.pooler.supabase.com:6543/postgres
+# Migration — Supabase > Settings > Database > Host (section "Connection parameters")
+SUPABASE_DB_HOST=db.[ref].supabase.co
+SUPABASE_DB_PORT=5432
+SUPABASE_DB_NAME=postgres
+SUPABASE_DB_USER=postgres
 SUPABASE_DB_PASSWORD=[password_en_clair]
 ```
-
-Note : `SUPABASE_DB_URL` peut contenir des `@` dans le password — le script les gère en utilisant
-`SUPABASE_DB_PASSWORD` directement (valeur brute, sans URL encoding).
 
 ---
 
@@ -225,31 +225,6 @@ pg@^8 + dotenv@^17            Migration Node.js
 **Note Windows :** si `npm install @solana/*` échoue avec ENOTEMPTY →
 `Remove-Item node_modules\es-toolkit\dist -Recurse -Force` puis réessayer.
 Il faut aussi `yarn` installé (`npm install -g yarn`) pour les postinstall scripts Solana.
-
----
-
-## Plan de build — état actuel
-
-### Vendredi soir — socle ✅
-- [x] Init Vite 8 + Tailwind v3 + toutes les dépendances
-- [x] Structure complète (types, services, hooks, composants, pages, props)
-- [x] Auth employer (signIn / signUp via Supabase Auth)
-- [x] Wallet Phantom — WalletConnect + useWallet + polyfill Buffer
-- [x] sendMemoTransaction — services/solana.ts
-- [x] Logo + bannière SVG
-- [x] Git init + push GitHub (HexaNexus28/Shiftpass)
-- [ ] Migration SQL appliquée sur Supabase ← appliquer via SQL Editor
-
-### Samedi — MVP
-- [ ] Test end-to-end wallet → attestation → Explorer
-- [ ] Dashboard employer complet (testé en browser)
-- [ ] Page passeport employé — URL publique testée
-- [ ] UI responsive validée mobile
-
-### Dimanche matin — wrap
-- [ ] Test end-to-end final
-- [ ] Déploiement Vercel
-- [ ] Soumission 8h00
 
 ---
 
