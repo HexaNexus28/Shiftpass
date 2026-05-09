@@ -273,22 +273,14 @@ Il faut aussi `yarn` installé (`npm install -g yarn`) pour les postinstall scri
 - RLS activé sur toutes les tables
 - Devnet uniquement
 
----
 
-## Pitch (60s)
-
-Problème : 130% de turnover en restauration. Un employé part, son historique disparaît.
-Solution : attestations de compétences ancrées sur Solana — appartiennent à l'employé, pas à l'employeur.
-Vérifiable par n'importe quel recruteur, en 2 secondes, sans intermédiaire.
-Solana : 400ms de confirmation, explorateur public, zéro intermédiaire.
-Marché : restauration, retail, logistique, hôtellerie mondiale.
 
 ---
 
 ## Liens
 
 - GitHub           : https://github.com/HexaNexus28/Shiftpass
-- Production       : https://shiftpass.vercel.app  ← mettre à jour
+- Production       : https://shiftpass-trust.vercel.app  ← mettre à jour
 - Explorer devnet  : https://explorer.solana.com/?cluster=devnet
 - Faucet SOL       : https://faucet.solana.com
 - Phantom          : https://phantom.app
