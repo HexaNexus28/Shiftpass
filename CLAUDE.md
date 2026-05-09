@@ -1,7 +1,6 @@
 # ShiftPass — CLAUDE.md
 
 ShiftPass = passeport professionnel portable pour travailleurs frontline, ancré sur Solana.
-Contexte : Dev3Pack Global Hackathon — 8-10 mai 2026. Soumission dimanche 8h00.
 Stack : React 19 + Vite 8 + TypeScript 6 + TailwindCSS 3 | Supabase | Solana devnet | @solana/web3.js v1
 Langue : Français. Ce fichier est la source de vérité du projet.
 
@@ -36,42 +35,44 @@ shiftpass/
 ├── src/
 │   ├── components/
 │   │   ├── employer/
-│   │   │   ├── Dashboard.tsx         # Tabs : attestations / employés / émettre
-│   │   │   ├── IssueAttestation.tsx  # Formulaire Memo + Supabase
+│   │   │   ├── Dashboard.tsx         # Tabs : attestations / employés / émettre + bouton lien employé
+│   │   │   ├── IssueAttestation.tsx  # Formulaire Memo + antifraud checks + Supabase
 │   │   │   └── AttestationList.tsx
 │   │   ├── employee/
-│   │   │   ├── Passport.tsx          # Profil portable + connect wallet
+│   │   │   ├── Passport.tsx          # Profil portable + co-signature wallet
 │   │   │   ├── WalletConnect.tsx     # Phantom connect/disconnect
-│   │   │   └── AttestationCard.tsx   # Carte + lien Explorer
+│   │   │   └── AttestationCard.tsx   # Carte + badge verified + bouton Confirmer
 │   │   └── shared/
-│   │       ├── SkillBadge.tsx        # Badge coloré par niveau
+│   │       ├── SkillBadge.tsx        # Badge coloré par niveau (SVG icons)
 │   │       └── SolanaStatus.tsx      # Indicateur tx + lien Explorer
 │   ├── hooks/
-│   │   ├── useAuth.ts                # Supabase Auth (employer)
-│   │   ├── useWallet.ts              # Wrapper @solana/wallet-adapter
+│   │   ├── useAuth.ts                # Supabase Auth (employer) — signUp avec siret
+│   │   ├── useWallet.ts              # Wrapper @solana/wallet-adapter + signMessage
 │   │   ├── useSolana.ts              # sendMemo() + loading/error state
-│   │   └── useAttestations.ts        # CRUD Supabase + usePassportAttestations + useEmployees
+│   │   └── useAttestations.ts        # CRUD Supabase + usePassportAttestations + useEmployees + useConfirmAttestation
 │   ├── services/
 │   │   ├── supabase.ts               # Client centralisé
 │   │   ├── solana.ts                 # sendMemoTransaction() — Buffer importé depuis 'buffer'
-│   │   └── hash.ts                   # sha256 via crypto.subtle
+│   │   ├── hash.ts                   # sha256 via crypto.subtle
+│   │   ├── siret.ts                  # Vérification SIRET via API SIRENE gouvernementale
+│   │   └── antifraud.ts              # detectCrossAttestation() + checkMinimumTenure()
 │   ├── config/
 │   │   └── constants.ts              # DEVNET_RPC, MEMO_PROGRAM_ID, SKILL_PRESETS
 │   ├── types/
-│   │   ├── attestation.ts            # Attestation, AttestationWithEmployer, MemoPayload
-│   │   ├── employee.ts
-│   │   └── employer.ts
-│   ├── props/                        # Props interfaces (R-06) — une par composant
+│   │   ├── attestation.ts            # Attestation, AttestationWithEmployer (+ employee_signature)
+│   │   ├── employee.ts               # Employee (+ employment_start_date)
+│   │   └── employer.ts               # Employer (+ siret)
+│   ├── props/                        # Props interfaces — une par composant
 │   │   ├── SkillBadge.props.ts
 │   │   ├── SolanaStatus.props.ts
-│   │   ├── AttestationCard.props.ts
+│   │   ├── AttestationCard.props.ts  # + onConfirm?, confirming?
 │   │   ├── AttestationList.props.ts
 │   │   ├── IssueAttestation.props.ts
 │   │   ├── Dashboard.props.ts
 │   │   └── Passport.props.ts
 │   ├── pages/
-│   │   ├── Landing.tsx               # Page d'accueil dark + pitch
-│   │   ├── EmployerDashboard.tsx     # Auth + Dashboard
+│   │   ├── Landing.tsx               # Page d'accueil dark + features + steps
+│   │   ├── EmployerDashboard.tsx     # Auth (+ SIRET KYB) + Dashboard
 │   │   └── EmployeePassport.tsx      # EmployeePassport + EmployeeProfile
 │   ├── polyfills.ts                  # Buffer global pour @solana/web3.js en browser
 │   ├── main.tsx
@@ -81,11 +82,12 @@ shiftpass/
 │   └── migrate.js                    # Node.js — applique supabase/migrations/*.sql
 ├── supabase/
 │   └── migrations/
-│       └── 001_initial.sql           # Tables + RLS policies
+│       ├── 001_initial.sql           # Tables + RLS policies
+│       └── 002_anti_fraud.sql        # siret, employment_start_date, employee_signature
 ├── public/
 │   ├── logo.svg                      # Shield + chain links + checkmark vert
-│   └── banner.svg                    # Bannière hackathon (1200x630)
-├── .env.local                        # VITE_SUPABASE_URL/KEY + SUPABASE_DB_URL/PASSWORD
+│   └── banner.svg                    # Bannière produit (1200x630)
+├── .env.local                        # VITE_SUPABASE_URL/KEY + SUPABASE_DB credentials
 ├── .env.dev                          # Copie pour migration explicite
 ├── tailwind.config.js
 ├── postcss.config.js
@@ -110,18 +112,32 @@ shiftpass/
 ## Flux principal
 
 ```
-Employeur (manager)                      Employé
-───────────────────                      ────────
-Connexion email/password                 Reçoit lien /employee/:id
-Dashboard → Onglet Employés              Connecte wallet Phantom
-Ajoute l'employé (nom + email)     →     Wallet associé au profil
+Employeur (manager)                         Employé
+───────────────────                         ────────
+Inscription email/password + SIRET          —
+  → vérification SIRENE API (KYB)
+  → 1 compte max par SIRET
+Connexion email/password
+Dashboard → Onglet Employés
+Ajoute l'employé (nom + email + date d'embauche)
+  → bouton copie lien /employee/:id   →    Reçoit lien /employee/:id
+                                            Connecte wallet Phantom
+                                            Wallet associé au profil
 Onglet Émettre
-Sélectionne employé + skill + niveau
+Sélectionne employé
+  → check tenure ≥ 14 jours
+  → check cross-attestation (email)
+  → check auto-attestation (wallet)
+Sélectionne skill + niveau
 sha256(payload)
-sendMemoTransaction() ──────────────→   Transaction Memo on-chain
-supabase.insert(attestation)
-                                         Passeport public /passport/:walletAddress
-                                         Vérifiable sur Explorer
+sendMemoTransaction() ─────────────────→   Transaction Memo on-chain
+supabase.insert(attestation, verified=false)
+                                            Passeport : bouton « Confirmer »
+                                            signMessage(payloadHash)
+                                   ←────── employee_signature stockée en DB
+                                            verified = true ✓
+                                            Passeport public /passport/:walletAddress
+                                            Vérifiable sur Explorer
 ```
 
 ---
@@ -161,23 +177,27 @@ vérifiable sur https://explorer.solana.com/?cluster=devnet
 
 ---
 
-## BDD Supabase (migration à appliquer — 001_initial.sql)
+## BDD Supabase
 
 ```sql
--- Tables
+-- 001_initial.sql
 employers    (id uuid PK = auth.uid(), name, restaurant, email, created_at)
 employees    (id uuid PK, name, wallet_address UNIQUE, email UNIQUE, created_at)
 attestations (id uuid PK, employee_id FK, employer_id FK, skill, level CHECK,
               tx_signature, payload_hash, issued_at, verified)
 
+-- 002_anti_fraud.sql
+employers    + siret text
+employees    + employment_start_date date NOT NULL DEFAULT CURRENT_DATE
+attestations + employee_signature text
+
 -- RLS policies
-employers    : employer_own_select (id = auth.uid()), employer_own_insert (id = auth.uid())
-employees    : employees_public_read (true), employees_authenticated_insert, employees_update_wallet
-attestations : attestations_employer_insert (employer_id = auth.uid()), attestations_public_read
+employers    : employer_own_select, employer_own_insert
+employees    : employees_public_read, employees_authenticated_insert, employees_update_wallet
+attestations : attestations_employer_insert, attestations_public_read, attestations_employee_confirm
 ```
 
-**Pour appliquer la migration :** coller `supabase/migrations/001_initial.sql` dans le SQL Editor Supabase.
-Ou configurer `SUPABASE_DB_PASSWORD` dans `.env.local` et lancer `npm run migrate:dev`.
+**Appliquer :** `npm run migrate:dev` (lit `.env.local` ou `.env.dev`).
 
 ---
 
@@ -228,17 +248,30 @@ Il faut aussi `yarn` installé (`npm install -g yarn`) pour les postinstall scri
 
 ---
 
+## Système anti-fraude
+
+| Vecteur | Protection |
+|---|---|
+| Entreprise fictive | SIRET obligatoire, vérifié via `recherche-entreprises.api.gouv.fr` |
+| Attestation immédiate après embauche | `employment_start_date` + tenure check ≥ 14 jours |
+| Deux amis s'attestent mutuellement | Cross-attestation detection (email match entre employers et employees) |
+| Auto-attestation (même wallet) | Comparaison `employee.wallet_address === employerWallet` au moment de l'émission |
+| Faux consentement | L'employé doit signer `payloadHash` avec son wallet → `employee_signature` en DB |
+
+---
+
 ## Règles projet
 
 - Strict TypeScript — no any
 - Supabase : toujours via `services/supabase.ts`
 - Solana : toujours via `services/solana.ts` — jamais de `Connection` inline dans les composants
+- Antifraud : toujours via `services/antifraud.ts` + `services/siret.ts`
 - Buffer : importé depuis `'buffer'` dans solana.ts, polyfill global dans `polyfills.ts`
 - Hooks : logique métier dans les hooks, composants = affichage uniquement
-- Props : interfaces dans `src/props/ComponentName.props.ts` (R-06)
+- Props : interfaces dans `src/props/ComponentName.props.ts`
 - try/catch sur tout appel Supabase/Solana
-- RLS activé et testé sur toutes les tables
-- Devnet uniquement pendant le hackathon
+- RLS activé sur toutes les tables
+- Devnet uniquement
 
 ---
 
@@ -254,9 +287,11 @@ Marché : restauration, retail, logistique, hôtellerie mondiale.
 
 ## Liens
 
-- GitHub         : https://github.com/HexaNexus28/Shiftpass
+- GitHub           : https://github.com/HexaNexus28/Shiftpass
+- Production       : https://shiftpass.vercel.app  ← mettre à jour
 - Explorer devnet  : https://explorer.solana.com/?cluster=devnet
 - Faucet SOL       : https://faucet.solana.com
 - Phantom          : https://phantom.app
 - Memo Program ID  : MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr
 - Supabase project : https://supabase.com/dashboard/project/poknblfcdvnipoqfsrgr
+- SIRENE API       : https://recherche-entreprises.api.gouv.fr

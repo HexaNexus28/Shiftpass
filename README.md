@@ -1,73 +1,119 @@
-# React + TypeScript + Vite
+# ShiftPass
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Passeport professionnel portable pour travailleurs frontline, ancré sur Solana.**
 
-Currently, two official plugins are available:
+> 130% de turnover en restauration rapide. À chaque départ, tout disparaît.  
+> ShiftPass ancre tes compétences on-chain — vérifiables par n'importe quel recruteur, en 2 secondes, sans intermédiaire.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+![banner](public/banner.svg)
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Fonctionnalités
 
-## Expanding the ESLint configuration
+- **Attestations on-chain** — chaque compétence est ancrée via le Memo Program Solana (vérifiable publiquement sur l'explorateur)
+- **Double signature** — l'employeur émet, l'employé confirme avec son wallet Phantom
+- **Passeport portable** — lié au wallet de l'employé, accessible à vie via `/passport/:walletAddress`
+- **Anti-fraude intégré** :
+  - Vérification SIRET via l'API SIRENE gouvernementale (KYB)
+  - Tenure minimum 14 jours avant attestation
+  - Détection cross-attestation (deux personnes qui s'attestent mutuellement)
+  - Blocage auto-attestation (même wallet employeur et employé)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Stack
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+| Couche | Technologie |
+|---|---|
+| Frontend | React 19 + Vite 8 + TypeScript + TailwindCSS 3 |
+| Auth & BDD | Supabase (Auth + PostgreSQL + RLS) |
+| Blockchain | Solana devnet — Memo Program natif |
+| Wallet | Phantom via `@solana/wallet-adapter` |
+| Déploiement | Vercel |
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+---
+
+## Installation
+
+```bash
+git clone https://github.com/HexaNexus28/Shiftpass.git
+cd Shiftpass
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Variables d'environnement
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Créer `.env.local` à la racine :
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```env
+VITE_SUPABASE_URL=https://[ref].supabase.co
+VITE_SUPABASE_ANON_KEY=eyJ...
+
+VITE_SOLANA_RPC=https://api.devnet.solana.com
+
+# Pour les migrations
+SUPABASE_DB_HOST=db.[ref].supabase.co
+SUPABASE_DB_PORT=5432
+SUPABASE_DB_NAME=postgres
+SUPABASE_DB_USER=postgres
+SUPABASE_DB_PASSWORD=...
 ```
+
+> **Vercel** : ajouter `VITE_SUPABASE_URL` et `VITE_SUPABASE_ANON_KEY` dans Settings → Environment Variables, puis redéployer.
+
+### Base de données
+
+```bash
+npm run migrate:dev
+```
+
+---
+
+## Développement
+
+```bash
+npm run dev        # localhost:5173
+npm run build      # TypeScript check + build
+```
+
+---
+
+## Routes
+
+| Route | Description |
+|---|---|
+| `/` | Landing page |
+| `/employer` | Connexion / inscription manager → Dashboard |
+| `/employee/:id` | Activation wallet par l'employé (lien envoyé par le manager) |
+| `/passport/:wallet` | Passeport public vérifiable |
+
+---
+
+## Flux
+
+```
+Manager                              Employé
+───────                              ───────
+Inscription + SIRET (KYB)
+Dashboard → Ajouter un employé  →   Reçoit lien /employee/:id
+                                     Connecte wallet Phantom
+Émettre une attestation
+  sha256(payload)
+  sendMemoTransaction()         →   TX Memo on-chain (Solana)
+  INSERT attestation (DB)
+                                     Bouton Confirmer
+                                     signMessage(hash)     →   employee_signature (DB)
+                                     verified = true ✓
+                                     /passport/:wallet public
+```
+
+---
+
+## Liens
+
+- [Explorer Solana devnet](https://explorer.solana.com/?cluster=devnet)
+- [Phantom Wallet](https://phantom.app)
+- [Faucet SOL devnet](https://faucet.solana.com)
+- [Supabase Dashboard](https://supabase.com/dashboard/project/poknblfcdvnipoqfsrgr)
+- [API SIRENE](https://recherche-entreprises.api.gouv.fr)
