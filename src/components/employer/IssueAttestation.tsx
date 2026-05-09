@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { sha256 } from '../../services/hash';
 import { useSolana } from '../../hooks/useSolana';
+import { useWallet } from '../../hooks/useWallet';
 import { useAttestations, useEmployees } from '../../hooks/useAttestations';
 import { detectCrossAttestation, checkMinimumTenure } from '../../services/antifraud';
 import { ATTESTATION_TYPE, ATTESTATION_VERSION, SKILL_PRESETS } from '../../config/constants';
@@ -13,7 +14,8 @@ const LEVELS: AttestationLevel[] = ['En formation', 'Certifié', 'Expert'];
 export function IssueAttestation({ employerId, restaurantName, onSuccess }: IssueAttestationProps) {
   const { employees } = useEmployees();
   const { createAttestation } = useAttestations({ employerId });
-  const { sendMemo, sending, error: solanaError } = useSolana();
+  const { sending, error: solanaError, sendMemo } = useSolana();
+  const { address: employerWallet } = useWallet();
 
   const [selectedEmployee, setSelectedEmployee] = useState('');
   const [skill, setSkill] = useState('');
@@ -30,6 +32,12 @@ export function IssueAttestation({ employerId, restaurantName, onSuccess }: Issu
     setTenureWarning(null);
     if (!id) return;
     const emp = employees.find(e => e.id === id);
+
+    if (emp?.wallet_address && employerWallet && emp.wallet_address === employerWallet) {
+      setFraudWarning('Auto-attestation détectée : le wallet de cet employé est le même que le vôtre.');
+      return;
+    }
+
     if (emp?.employment_start_date) {
       const tenure = checkMinimumTenure(emp.employment_start_date);
       if (!tenure.allowed) {
@@ -47,6 +55,10 @@ export function IssueAttestation({ employerId, restaurantName, onSuccess }: Issu
     if (!employee) return;
     if (!employee.wallet_address) {
       setFormError('Cet employé n\'a pas encore connecté son wallet Phantom.');
+      return;
+    }
+    if (fraudWarning) {
+      setFormError('Attestation bloquée : ' + fraudWarning);
       return;
     }
     if (tenureWarning) {

@@ -132,15 +132,30 @@ export function Dashboard({ employer, onSignOut }: DashboardProps) {
                     <p className="text-sm font-medium text-gray-800">{emp.name}</p>
                     <p className="text-xs text-gray-500">{emp.email}</p>
                   </div>
-                  {emp.wallet_address ? (
-                    <span className="text-xs font-mono text-green-600 bg-green-50 px-2 py-1 rounded-full">
-                      {emp.wallet_address.slice(0, 4)}...{emp.wallet_address.slice(-4)}
-                    </span>
-                  ) : (
-                    <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
-                      Wallet manquant
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {emp.wallet_address ? (
+                      <span className="text-xs font-mono text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                        {emp.wallet_address.slice(0, 4)}...{emp.wallet_address.slice(-4)}
+                      </span>
+                    ) : (
+                      <>
+                        <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-full">Wallet manquant</span>
+                        <button
+                          type="button"
+                          title="Copier le lien d'activation"
+                          onClick={() => {
+                            const url = `${window.location.origin}/employee/${emp.id}`;
+                            navigator.clipboard.writeText(url);
+                          }}
+                          className="p-1.5 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 7.5V6.108c0-1.135.845-2.098 1.976-2.192.373-.03.748-.057 1.123-.08M15.75 18H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08M15.75 18.75v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5A3.375 3.375 0 0 0 6.375 7.5H5.25m11.9-3.664A2.251 2.251 0 0 0 15 2.25h-1.5a2.251 2.251 0 0 0-2.236 2.836" />
+                          </svg>
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
