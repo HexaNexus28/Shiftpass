@@ -8,6 +8,7 @@ export interface Attestation {
   level: AttestationLevel;
   tx_signature: string | null;
   payload_hash: string | null;
+  employee_signature: string | null;
   issued_at: string;
   verified: boolean;
 }

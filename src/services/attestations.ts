@@ -22,7 +22,7 @@ export async function listAttestationsWithEmployer(employeeId: string): Promise<
 }
 
 export async function createAttestation(
-  attestation: Omit<Attestation, 'id' | 'issued_at' | 'verified'>,
+  attestation: Omit<Attestation, 'id' | 'issued_at' | 'verified' | 'employee_signature'>,
 ): Promise<{ data: Attestation | null; error: string | null }> {
   const { data, error } = await supabase
     .from('attestations')
@@ -30,4 +30,15 @@ export async function createAttestation(
     .select()
     .single();
   return { data: data ?? null, error: error?.message ?? null };
+}
+
+export async function confirmAttestation(
+  attestationId: string,
+  employeeSignature: string,
+): Promise<{ error: string | null }> {
+  const { error } = await supabase
+    .from('attestations')
+    .update({ employee_signature: employeeSignature, verified: true })
+    .eq('id', attestationId);
+  return { error: error?.message ?? null };
 }

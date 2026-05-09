@@ -1,11 +1,35 @@
+import { useState } from 'react';
+import { Buffer } from 'buffer';
 import { WalletConnect } from './WalletConnect';
 import { AttestationCard } from './AttestationCard';
 import { useWallet } from '../../hooks/useWallet';
+import { useConfirmAttestation } from '../../hooks/useAttestations';
 import type { PassportProps } from '../../props/Passport.props';
 
 export function Passport({ employee, attestations, loading, onWalletLinked }: PassportProps) {
-  const { connected, address } = useWallet();
+  const { connected, address, signMessage } = useWallet();
+  const { confirmAttestation, confirming } = useConfirmAttestation();
+  const [confirmError, setConfirmError] = useState<string | null>(null);
+  const [localVerified, setLocalVerified] = useState<Set<string>>(new Set());
   const isOwner = connected && address === employee.wallet_address;
+
+  async function handleConfirm(attestationId: string, payloadHash: string) {
+    setConfirmError(null);
+    if (!signMessage) {
+      setConfirmError('Ton wallet ne supporte pas la signature de messages.');
+      return;
+    }
+    try {
+      const hashBytes = Uint8Array.from(Buffer.from(payloadHash, 'hex'));
+      const signatureBytes = await signMessage(hashBytes);
+      const signatureBase64 = Buffer.from(signatureBytes).toString('base64');
+      const ok = await confirmAttestation(attestationId, signatureBase64);
+      if (ok) setLocalVerified(prev => new Set(prev).add(attestationId));
+      else setConfirmError('Erreur lors de la confirmation.');
+    } catch {
+      setConfirmError('Signature annulée ou échouée.');
+    }
+  }
   const needsWallet = !employee.wallet_address;
 
   const levelOrder = { 'Expert': 0, 'Certifié': 1, 'En formation': 2 } as const;
@@ -13,13 +37,13 @@ export function Passport({ employee, attestations, loading, onWalletLinked }: Pa
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-white">
-      <div className="max-w-xl mx-auto px-6 py-10 space-y-8">
+      <div className="max-w-xl mx-auto px-4 sm:px-6 py-8 sm:py-10 space-y-6 sm:space-y-8">
         <div className="text-center space-y-3">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-purple-600 text-white text-2xl font-bold shadow-lg">
             {employee.name.charAt(0).toUpperCase()}
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{employee.name}</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{employee.name}</h1>
             <p className="text-sm text-gray-500">Passeport professionnel</p>
           </div>
 
@@ -65,6 +89,12 @@ export function Passport({ employee, attestations, loading, onWalletLinked }: Pa
             <span className="text-xs text-gray-400">Vérifiables sur Solana devnet</span>
           </div>
 
+          {confirmError && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+              {confirmError}
+            </div>
+          )}
+
           {loading ? (
             <div className="text-center py-8 text-gray-400 text-sm">Chargement...</div>
           ) : sorted.length === 0 ? (
@@ -74,7 +104,12 @@ export function Passport({ employee, attestations, loading, onWalletLinked }: Pa
           ) : (
             <div className="space-y-3">
               {sorted.map(att => (
-                <AttestationCard key={att.id} attestation={att} />
+                <AttestationCard
+                  key={att.id}
+                  attestation={{ ...att, verified: att.verified || localVerified.has(att.id) }}
+                  onConfirm={isOwner && !att.verified && !localVerified.has(att.id) ? handleConfirm : undefined}
+                  confirming={confirming}
+                />
               ))}
             </div>
           )}

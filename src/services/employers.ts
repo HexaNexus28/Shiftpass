@@ -11,7 +11,8 @@ export async function createEmployer(
   name: string,
   restaurant: string,
   email: string,
+  siret: string | null,
 ): Promise<string | null> {
-  const { error } = await supabase.from('employers').insert({ id, name, restaurant, email });
+  const { error } = await supabase.from('employers').insert({ id, name, restaurant, email, siret });
   return error?.message ?? null;
 }

@@ -3,6 +3,7 @@ import {
   listAttestations,
   listAttestationsWithEmployer,
   createAttestation as createAttestationService,
+  confirmAttestation as confirmAttestationService,
 } from '../services/attestations';
 import {
   listEmployees,
@@ -36,7 +37,7 @@ export function useAttestations(params: { employeeId?: string; employerId?: stri
   }
 
   async function createAttestation(
-    attestation: Omit<Attestation, 'id' | 'issued_at' | 'verified'>,
+    attestation: Omit<Attestation, 'id' | 'issued_at' | 'verified' | 'employee_signature'>,
   ): Promise<{ error: string | null; data: Attestation | null }> {
     const result = await createAttestationService(attestation);
     if (!result.error && result.data) {
@@ -66,7 +67,7 @@ export function usePassportAttestations(employeeId: string | null) {
 }
 
 export function useEmployees() {
-  const [employees, setEmployees] = useState<Pick<Employee, 'id' | 'name' | 'email' | 'wallet_address'>[]>([]);
+  const [employees, setEmployees] = useState<Pick<Employee, 'id' | 'name' | 'email' | 'wallet_address' | 'employment_start_date'>[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { fetchEmployees(); }, []);
@@ -76,13 +77,39 @@ export function useEmployees() {
     setLoading(false);
   }
 
-  async function addEmployee(name: string, email: string): Promise<string | null> {
-    const err = await createEmployee(name, email);
+  async function addEmployee(
+    name: string,
+    email: string,
+    employmentStartDate: string,
+  ): Promise<string | null> {
+    const err = await createEmployee(name, email, employmentStartDate);
     if (!err) fetchEmployees();
     return err;
   }
 
   return { employees, loading, addEmployee, refetch: fetchEmployees };
+}
+
+export function useConfirmAttestation() {
+  const [confirming, setConfirming] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function confirmAttestation(
+    attestationId: string,
+    employeeSignature: string,
+  ): Promise<boolean> {
+    setConfirming(true);
+    setError(null);
+    try {
+      const { error: err } = await confirmAttestationService(attestationId, employeeSignature);
+      if (err) { setError(err); return false; }
+      return true;
+    } finally {
+      setConfirming(false);
+    }
+  }
+
+  return { confirmAttestation, confirming, error };
 }
 
 export function useEmployee(id: string | null) {

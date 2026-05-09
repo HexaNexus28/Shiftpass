@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Dashboard } from '../components/employer/Dashboard';
+import { verifySiret } from '../services/siret';
+import type { SiretResult } from '../services/siret';
 
 type AuthMode = 'login' | 'register';
 
@@ -11,6 +13,9 @@ export function EmployerDashboard() {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [restaurant, setRestaurant] = useState('');
+  const [siret, setSiret] = useState('');
+  const [siretResult, setSiretResult] = useState<SiretResult | null>(null);
+  const [siretChecking, setSiretChecking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -26,6 +31,16 @@ export function EmployerDashboard() {
     return <Dashboard employer={employer} onSignOut={signOut} />;
   }
 
+  async function handleCheckSiret() {
+    if (!siret) return;
+    setSiretChecking(true);
+    setSiretResult(null);
+    const result = await verifySiret(siret);
+    setSiretResult(result);
+    setSiretChecking(false);
+    if (result.companyName && !restaurant) setRestaurant(result.companyName);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -35,7 +50,12 @@ export function EmployerDashboard() {
         const err = await signIn(email, password);
         if (err) setError(err);
       } else {
-        const err = await signUp(email, password, name, restaurant);
+        if (!siretResult?.exists || !siretResult.active) {
+          setError('Veuillez vérifier un SIRET valide avant de créer le compte.');
+          setSubmitting(false);
+          return;
+        }
+        const err = await signUp(email, password, name, restaurant, siret.replace(/\s/g, '') || null);
         if (err) setError(err);
       }
     } finally {
@@ -52,7 +72,7 @@ export function EmployerDashboard() {
           <p className="text-sm text-gray-500 mt-1">Espace manager</p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm space-y-4">
+        <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-6 shadow-sm space-y-4">
           <div className="flex rounded-lg border border-gray-200 p-1">
             {(['login', 'register'] as AuthMode[]).map(m => (
               <button
@@ -86,6 +106,37 @@ export function EmployerDashboard() {
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   required
                 />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={siret}
+                    onChange={e => { setSiret(e.target.value); setSiretResult(null); }}
+                    placeholder="SIRET (14 chiffres)"
+                    className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    required
+                    maxLength={17}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleCheckSiret}
+                    disabled={siretChecking || !siret}
+                    className="px-3 py-2 bg-gray-100 text-gray-700 text-xs font-medium rounded-lg border border-gray-300 hover:bg-gray-200 disabled:opacity-50 whitespace-nowrap"
+                  >
+                    {siretChecking ? '...' : 'Vérifier'}
+                  </button>
+                </div>
+                {siretResult && (
+                  <div className={`p-2 rounded-lg text-xs ${
+                    siretResult.exists && siretResult.active
+                      ? 'bg-green-50 border border-green-200 text-green-700'
+                      : 'bg-red-50 border border-red-200 text-red-700'
+                  }`}>
+                    {siretResult.exists && siretResult.active
+                      ? `✓ ${siretResult.companyName} — entreprise active`
+                      : siretResult.error ?? 'SIRET invalide'
+                    }
+                  </div>
+                )}
               </>
             )}
             <input

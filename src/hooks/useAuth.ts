@@ -47,11 +47,12 @@ export function useAuth() {
     password: string,
     name: string,
     restaurant: string,
+    siret: string | null,
   ): Promise<string | null> {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) return error.message;
     if (!data.user) return 'Erreur lors de la création du compte';
-    return createEmployer(data.user.id, name, restaurant, email);
+    return createEmployer(data.user.id, name, restaurant, email, siret);
   }
 
   async function signOut(): Promise<void> {

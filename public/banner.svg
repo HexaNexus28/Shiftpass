@@ -44,7 +44,7 @@
   <circle cx="1050" cy="500" r="120" fill="#7c3aed" opacity="0.06"/>
 
   <!-- Logo shield (left side) -->
-  <g transform="translate(120, 165)">
+  <g transform="translate(90, 220)">
     <path d="M120 0 L240 48 L240 156 C240 228 180 276 120 288 C60 276 0 228 0 156 L0 48 Z" fill="url(#purpleGrad)" opacity="0.9"/>
     <!-- Chain links in logo -->
     <rect x="82" y="56" width="56" height="36" rx="18" fill="none" stroke="#c4b5fd" stroke-width="8"/>
@@ -68,22 +68,45 @@
   <text x="420" y="365" font-family="system-ui, -apple-system, sans-serif" font-size="24" fill="#6b7280">Attestations de compétences vérifiables on-chain · Solana</text>
 
   <!-- Stats row -->
-  <g transform="translate(420, 430)">
+  <g transform="translate(420, 410)">
     <!-- Stat 1 -->
-    <rect x="98" width="180" height="72" rx="12" fill="#ffffff" fill-opacity="0.05" stroke="#7c3aed" stroke-opacity="0.3" stroke-width="1"/>
-    <text x="188" y="32" text-anchor="middle" font-family="system-ui" font-size="28" font-weight="700" fill="#a78bfa">400ms</text>
-    <text x="188" y="54" text-anchor="middle" font-family="system-ui" font-size="13" fill="#6b7280">confirmation</text>
+    <rect x="0" width="160" height="68" rx="12" fill="#ffffff" fill-opacity="0.05" stroke="#7c3aed" stroke-opacity="0.3" stroke-width="1"/>
+    <text x="80" y="30" text-anchor="middle" font-family="system-ui" font-size="26" font-weight="700" fill="#a78bfa">400ms</text>
+    <text x="80" y="52" text-anchor="middle" font-family="system-ui" font-size="12" fill="#6b7280">confirmation</text>
 
     <!-- Stat 2 -->
-    <rect x="294" width="180" height="72" rx="12" fill="#ffffff" fill-opacity="0.05" stroke="#7c3aed" stroke-opacity="0.3" stroke-width="1"/>
-    <text x="384" y="32" text-anchor="middle" font-family="system-ui" font-size="28" font-weight="700" fill="#a78bfa">∞</text>
-    <text x="384" y="54" text-anchor="middle" font-family="system-ui" font-size="13" fill="#6b7280">durée de vie</text>
+    <rect x="174" width="160" height="68" rx="12" fill="#ffffff" fill-opacity="0.05" stroke="#7c3aed" stroke-opacity="0.3" stroke-width="1"/>
+    <text x="254" y="30" text-anchor="middle" font-family="system-ui" font-size="26" font-weight="700" fill="#a78bfa">0</text>
+    <text x="254" y="52" text-anchor="middle" font-family="system-ui" font-size="12" fill="#6b7280">intermédiaire</text>
+
+    <!-- Stat 3 -->
+    <rect x="348" width="160" height="68" rx="12" fill="#ffffff" fill-opacity="0.05" stroke="#7c3aed" stroke-opacity="0.3" stroke-width="1"/>
+    <text x="428" y="30" text-anchor="middle" font-family="system-ui" font-size="26" font-weight="700" fill="#a78bfa">∞</text>
+    <text x="428" y="52" text-anchor="middle" font-family="system-ui" font-size="12" fill="#6b7280">durée de vie</text>
   </g>
 
-  <!-- Hackathon badge -->
-  <rect x="420" y="540" width="340" height="44" rx="22" fill="#7c3aed" fill-opacity="0.15" stroke="#7c3aed" stroke-opacity="0.4" stroke-width="1"/>
-  <circle cx="450" cy="562" r="6" fill="#4ade80"/>
-  <text x="466" y="567" font-family="system-ui" font-size="18" fill="#a78bfa">Dev3Pack Global Hackathon · Mai 2026</text>
+  <!-- Value props row -->
+  <g transform="translate(420, 510)">
+    <rect x="0" width="155" height="72" rx="10" fill="#ffffff" fill-opacity="0.03" stroke="#ffffff" stroke-opacity="0.07" stroke-width="1"/>
+    <text x="22" y="28" font-family="system-ui" font-size="18">🔐</text>
+    <text x="48" y="28" font-family="system-ui" font-size="14" font-weight="600" fill="#e9d5ff">Non falsifiable</text>
+    <text x="22" y="52" font-family="system-ui" font-size="11" fill="#6b7280">Double signature on-chain</text>
+
+    <rect x="165" width="155" height="72" rx="10" fill="#ffffff" fill-opacity="0.03" stroke="#ffffff" stroke-opacity="0.07" stroke-width="1"/>
+    <text x="187" y="28" font-family="system-ui" font-size="18">📱</text>
+    <text x="213" y="28" font-family="system-ui" font-size="14" font-weight="600" fill="#e9d5ff">Portable</text>
+    <text x="187" y="52" font-family="system-ui" font-size="11" fill="#6b7280">Lié à ton wallet Phantom</text>
+
+    <rect x="330" width="155" height="72" rx="10" fill="#ffffff" fill-opacity="0.03" stroke="#ffffff" stroke-opacity="0.07" stroke-width="1"/>
+    <text x="352" y="28" font-family="system-ui" font-size="18">🔍</text>
+    <text x="378" y="28" font-family="system-ui" font-size="14" font-weight="600" fill="#e9d5ff">Vérifiable</text>
+    <text x="352" y="52" font-family="system-ui" font-size="11" fill="#6b7280">Explorateur Solana public</text>
+  </g>
+
+  <!-- Bottom badge -->
+  <rect x="420" y="600" width="290" height="14" rx="4" fill="#7c3aed" fill-opacity="0.0"/>
+  <circle cx="432" cy="607" r="4" fill="#4ade80" opacity="0.8"/>
+  <text x="444" y="611" font-family="system-ui" font-size="13" fill="#6b7280">Solana devnet · Bêta publique</text>
 
   <!-- Solana logo reference (abstract) -->
   <g transform="translate(1020, 400)" opacity="0.15">

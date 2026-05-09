@@ -3,5 +3,6 @@ export interface Employer {
   name: string;
   restaurant: string;
   email: string;
+  siret: string | null;
   created_at: string;
 }

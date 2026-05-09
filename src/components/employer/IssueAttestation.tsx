@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { sha256 } from '../../services/hash';
 import { useSolana } from '../../hooks/useSolana';
 import { useAttestations, useEmployees } from '../../hooks/useAttestations';
+import { detectCrossAttestation, checkMinimumTenure } from '../../services/antifraud';
 import { ATTESTATION_TYPE, ATTESTATION_VERSION, SKILL_PRESETS } from '../../config/constants';
 import { SolanaStatus } from '../shared/SolanaStatus';
 import type { IssueAttestationProps } from '../../props/IssueAttestation.props';
@@ -20,6 +21,24 @@ export function IssueAttestation({ employerId, restaurantName, onSuccess }: Issu
   const [submitting, setSubmitting] = useState(false);
   const [txSig, setTxSig] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const [fraudWarning, setFraudWarning] = useState<string | null>(null);
+  const [tenureWarning, setTenureWarning] = useState<string | null>(null);
+
+  async function handleEmployeeChange(id: string) {
+    setSelectedEmployee(id);
+    setFraudWarning(null);
+    setTenureWarning(null);
+    if (!id) return;
+    const emp = employees.find(e => e.id === id);
+    if (emp?.employment_start_date) {
+      const tenure = checkMinimumTenure(emp.employment_start_date);
+      if (!tenure.allowed) {
+        setTenureWarning(`Attestation bloquée : l'employé doit être en poste depuis au moins 14 jours (encore ${tenure.daysRemaining} jour(s) requis).`);
+      }
+    }
+    const cross = await detectCrossAttestation(id, employerId);
+    if (cross.isSuspect) setFraudWarning(cross.reason ?? 'Relation croisée détectée.');
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -28,6 +47,10 @@ export function IssueAttestation({ employerId, restaurantName, onSuccess }: Issu
     if (!employee) return;
     if (!employee.wallet_address) {
       setFormError('Cet employé n\'a pas encore connecté son wallet Phantom.');
+      return;
+    }
+    if (tenureWarning) {
+      setFormError(tenureWarning);
       return;
     }
 
@@ -78,7 +101,7 @@ export function IssueAttestation({ employerId, restaurantName, onSuccess }: Issu
         <label className="block text-sm font-medium text-gray-700 mb-1">Employé</label>
         <select
           value={selectedEmployee}
-          onChange={e => setSelectedEmployee(e.target.value)}
+          onChange={e => handleEmployeeChange(e.target.value)}
           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
           required
         >
@@ -126,6 +149,18 @@ export function IssueAttestation({ employerId, restaurantName, onSuccess }: Issu
           ))}
         </div>
       </div>
+
+      {tenureWarning && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+          {tenureWarning}
+        </div>
+      )}
+
+      {fraudWarning && (
+        <div className="p-3 bg-amber-50 border border-amber-300 rounded-lg text-sm text-amber-800">
+          <span className="font-semibold">⚠ Relation croisée détectée</span> — {fraudWarning}
+        </div>
+      )}
 
       {(formError || solanaError) && (
         <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
