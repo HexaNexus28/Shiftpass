@@ -6,6 +6,8 @@ import type { SiretResult } from '../services/siret';
 
 type AuthMode = 'login' | 'register';
 
+const DEV_MODE = import.meta.env.VITE_DEV_MODE === 'true';
+
 export function EmployerDashboard() {
   const { user, employer, loading, signIn, signUp, signOut } = useAuth();
   const [mode, setMode] = useState<AuthMode>('login');
@@ -33,6 +35,11 @@ export function EmployerDashboard() {
 
   async function handleCheckSiret() {
     if (!siret) return;
+    if (DEV_MODE) {
+      setSiretResult({ exists: true, active: true, companyName: '[DEV] Entreprise de test' });
+      if (!restaurant) setRestaurant('[DEV] Entreprise de test');
+      return;
+    }
     setSiretChecking(true);
     setSiretResult(null);
     const result = await verifySiret(siret);
@@ -50,7 +57,7 @@ export function EmployerDashboard() {
         const err = await signIn(email, password);
         if (err) setError(err);
       } else {
-        if (!siretResult?.exists || !siretResult.active) {
+        if (!DEV_MODE && (!siretResult?.exists || !siretResult.active)) {
           setError('Veuillez vérifier un SIRET valide avant de créer le compte.');
           setSubmitting(false);
           return;
