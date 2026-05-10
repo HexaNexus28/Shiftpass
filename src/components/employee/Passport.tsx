@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Buffer } from 'buffer';
-import { WalletConnect } from './WalletConnect';
+import { WalletConnect } from '../shared/WalletConnect';
 import { AttestationCard } from './AttestationCard';
 import { useWallet } from '../../hooks/useWallet';
 import { useConfirmAttestation } from '../../hooks/useAttestations';

@@ -80,6 +80,7 @@ export function IssueAttestation({ employerId, restaurantName, onSuccess }: Issu
       };
       const hash = await sha256(basePayload);
       const txSignature = await sendMemo({ ...basePayload, hash });
+      if (!txSignature) return;
 
       const { error } = await createAttestation({
         employee_id: selectedEmployee,
@@ -110,8 +111,9 @@ export function IssueAttestation({ employerId, restaurantName, onSuccess }: Issu
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Employé</label>
+        <label htmlFor="employee-select" className="block text-sm font-medium text-gray-700 mb-1">Employé</label>
         <select
+          id="employee-select"
           value={selectedEmployee}
           onChange={e => handleEmployeeChange(e.target.value)}
           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -127,8 +129,9 @@ export function IssueAttestation({ employerId, restaurantName, onSuccess }: Issu
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Compétence</label>
+        <label htmlFor="skill-input" className="block text-sm font-medium text-gray-700 mb-1">Compétence</label>
         <input
+          id="skill-input"
           list="skill-presets"
           type="text"
           value={skill}

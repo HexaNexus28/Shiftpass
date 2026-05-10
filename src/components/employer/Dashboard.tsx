@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { useAttestations, useEmployees } from '../../hooks/useAttestations';
+import { useWallet } from '../../hooks/useWallet';
 import { IssueAttestation } from './IssueAttestation';
 import { AttestationList } from './AttestationList';
+import { WalletConnect } from '../shared/WalletConnect';
 import type { DashboardProps } from '../../props/Dashboard.props';
 
 export function Dashboard({ employer, onSignOut }: DashboardProps) {
   const { attestations, loading, refetch } = useAttestations({ employerId: employer.id });
   const { employees, addEmployee } = useEmployees();
+  const { connected: walletConnected } = useWallet();
   const [view, setView] = useState<'attestations' | 'employees' | 'issue'>('attestations');
   const [newName, setNewName] = useState('');
   const [newEmail, setNewEmail] = useState('');
@@ -29,17 +32,20 @@ export function Dashboard({ employer, onSignOut }: DashboardProps) {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4">
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
+        <div className="max-w-2xl mx-auto flex items-center justify-between gap-3 flex-wrap">
           <div>
             <h1 className="text-xl font-bold text-gray-900">ShiftPass</h1>
             <p className="text-xs text-gray-500">{employer.restaurant} · {employer.name}</p>
           </div>
-          <button
-            onClick={onSignOut}
-            className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            Déconnexion
-          </button>
+          <div className="flex items-center gap-3">
+            <WalletConnect />
+            <button
+              onClick={onSignOut}
+              className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              Déconnexion
+            </button>
+          </div>
         </div>
       </header>
 
@@ -65,11 +71,22 @@ export function Dashboard({ employer, onSignOut }: DashboardProps) {
         {view === 'issue' && (
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <h2 className="font-semibold text-gray-800 mb-4">Émettre une attestation on-chain</h2>
-            <IssueAttestation
-              employerId={employer.id}
-              restaurantName={employer.restaurant}
-              onSuccess={() => { setView('attestations'); refetch(); }}
-            />
+            {walletConnected ? (
+              <IssueAttestation
+                employerId={employer.id}
+                restaurantName={employer.restaurant}
+                onSuccess={() => { setView('attestations'); refetch(); }}
+              />
+            ) : (
+              <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg space-y-3">
+                <p className="text-sm text-amber-800">
+                  Connectez votre wallet Phantom pour signer les attestations on-chain.
+                </p>
+                <div className="flex justify-center">
+                  <WalletConnect />
+                </div>
+              </div>
+            )}
           </div>
         )}
 

@@ -8,6 +8,7 @@ export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [employer, setEmployer] = useState<Employer | null>(null);
   const [loading, setLoading] = useState(true);
+  const [orphanAuth, setOrphanAuth] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -33,11 +34,18 @@ export function useAuth() {
   }, []);
 
   async function loadEmployer(userId: string) {
-    setEmployer(await getEmployerById(userId));
+    const emp = await getEmployerById(userId);
+    if (!emp) {
+      setOrphanAuth(true);
+      await supabase.auth.signOut();
+      return;
+    }
+    setEmployer(emp);
     setLoading(false);
   }
 
   async function signIn(email: string, password: string): Promise<string | null> {
+    setOrphanAuth(false);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     return error?.message ?? null;
   }
@@ -49,15 +57,22 @@ export function useAuth() {
     restaurant: string,
     siret: string | null,
   ): Promise<string | null> {
+    setOrphanAuth(false);
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) return error.message;
     if (!data.user) return 'Erreur lors de la création du compte';
-    return createEmployer(data.user.id, name, restaurant, email, siret);
+    const employerError = await createEmployer(data.user.id, name, restaurant, email, siret);
+    if (employerError) {
+      await supabase.auth.signOut();
+      return employerError;
+    }
+    return null;
   }
 
   async function signOut(): Promise<void> {
+    setOrphanAuth(false);
     await supabase.auth.signOut();
   }
 
-  return { user, employer, loading, signIn, signUp, signOut };
+  return { user, employer, loading, orphanAuth, signIn, signUp, signOut };
 }

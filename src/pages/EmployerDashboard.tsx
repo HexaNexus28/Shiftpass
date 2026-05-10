@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Dashboard } from '../components/employer/Dashboard';
 import { verifySiret } from '../services/siret';
@@ -9,7 +9,7 @@ type AuthMode = 'login' | 'register';
 const DEV_MODE = import.meta.env.VITE_DEV_MODE === 'true';
 
 export function EmployerDashboard() {
-  const { user, employer, loading, signIn, signUp, signOut } = useAuth();
+  const { user, employer, loading, orphanAuth, signIn, signUp, signOut } = useAuth();
   const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -20,6 +20,13 @@ export function EmployerDashboard() {
   const [siretChecking, setSiretChecking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (DEV_MODE && mode === 'register') {
+      setSiretResult({ exists: true, active: true, companyName: '[DEV] Entreprise de test' });
+      if (!restaurant) setRestaurant('[DEV] Entreprise de test');
+    }
+  }, [mode]);
 
   if (loading) {
     return (
@@ -113,26 +120,33 @@ export function EmployerDashboard() {
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   required
                 />
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={siret}
-                    onChange={e => { setSiret(e.target.value); setSiretResult(null); }}
-                    placeholder="SIRET (14 chiffres)"
-                    className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    required
-                    maxLength={17}
-                  />
-                  <button
-                    type="button"
-                    onClick={handleCheckSiret}
-                    disabled={siretChecking || !siret}
-                    className="px-3 py-2 bg-gray-100 text-gray-700 text-xs font-medium rounded-lg border border-gray-300 hover:bg-gray-200 disabled:opacity-50 whitespace-nowrap"
-                  >
-                    {siretChecking ? '...' : 'Vérifier'}
-                  </button>
-                </div>
-                {siretResult && (
+                {!DEV_MODE && (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={siret}
+                      onChange={e => { setSiret(e.target.value); setSiretResult(null); }}
+                      placeholder="SIRET (14 chiffres)"
+                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      required
+                      maxLength={17}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleCheckSiret}
+                      disabled={siretChecking || !siret}
+                      className="px-3 py-2 bg-gray-100 text-gray-700 text-xs font-medium rounded-lg border border-gray-300 hover:bg-gray-200 disabled:opacity-50 whitespace-nowrap"
+                    >
+                      {siretChecking ? '...' : 'Vérifier'}
+                    </button>
+                  </div>
+                )}
+                {DEV_MODE && (
+                  <div className="p-2 rounded-lg text-xs bg-amber-50 border border-amber-200 text-amber-700">
+                    ⚠️ Dev mode — vérification SIRET désactivée
+                  </div>
+                )}
+                {!DEV_MODE && siretResult && (
                   <div className={`p-2 rounded-lg text-xs ${
                     siretResult.exists && siretResult.active
                       ? 'bg-green-50 border border-green-200 text-green-700'
@@ -163,6 +177,12 @@ export function EmployerDashboard() {
               required
               minLength={6}
             />
+
+            {orphanAuth && !error && (
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+                Votre compte n'a pas été correctement créé (profil employeur manquant). Veuillez vous réinscrire.
+              </div>
+            )}
 
             {error && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
